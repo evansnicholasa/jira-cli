@@ -1,5 +1,7 @@
 # jira-cli
 
+[![tests](https://github.com/evansnicholasa/jira-cli/actions/workflows/tests.yml/badge.svg)](https://github.com/evansnicholasa/jira-cli/actions/workflows/tests.yml)
+
 A single-file Jira Cloud CLI with **no dependencies** — read and write a board
 from any shell, editor, CI job, or AI coding agent.
 
