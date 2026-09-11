@@ -1,0 +1,29 @@
+name: tests
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        # The point of the matrix is the claim in the README: this runs on
+        # whatever Python is to hand. A version that breaks it is the news.
+        python-version: ["3.9", "3.11", "3.13", "3.14"]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      # Deliberately no install step. There is nothing to install, and adding
+      # one here would quietly let a dependency creep in without the README
+      # ever becoming false.
+      - name: Run tests
+        run: python -m unittest discover -v
