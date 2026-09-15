@@ -9,6 +9,7 @@ from any shell, editor, CI job, or AI coding agent.
 python jira.py get PROJ-42
 python jira.py search "project = PROJ AND statusCategory != Done"
 python jira.py create --type Story --summary "..." --description-file body.md
+python jira.py create --type Story --parent PROJ-1 --summary "..."
 python jira.py edit PROJ-42 --description-file body.md
 python jira.py transition PROJ-42 Done
 python jira.py comment PROJ-42 --body-file note.md
@@ -68,7 +69,7 @@ entry to forget, and no way for the token to reach a commit by accident.
 |---|---|
 | `get KEY` | Show one issue — type, status, URL, description |
 | `search JQL` | Run a JQL query |
-| `create` | Create an issue (`--type`, `--summary`, `--description-file`) |
+| `create` | Create an issue (`--type`, `--summary`, `--description-file`, `--parent`) |
 | `edit KEY` | Change summary and/or description |
 | `transition KEY STATUS` | Move an issue, **by status name** |
 | `comment KEY` | Add a comment (`--body-file`) |
@@ -121,7 +122,7 @@ site rather than by reading:
 python -m unittest discover
 ```
 
-18 tests, no network, nothing to install — the same property the tool claims for
+20 tests, no network, nothing to install — the same property the tool claims for
 itself. `unittest` rather than pytest for exactly that reason: the part most
 likely to be run by someone checking whether this still works should not begin
 with `pip install`.
