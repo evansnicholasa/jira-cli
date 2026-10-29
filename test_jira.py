@@ -238,7 +238,8 @@ class TestCommands(unittest.TestCase):
             return {"key": "PROJ-99"}
 
         args = SimpleNamespace(
-            project="PROJ", type="Story", summary="A summary", description_file=None
+            project="PROJ", type="Story", summary="A summary",
+            description_file=None, parent=None,
         )
         with mock.patch.object(jira, "request", side_effect=fake), captured() as out:
             jira.cmd_create(CONFIG, args)
@@ -259,7 +260,8 @@ class TestCommands(unittest.TestCase):
 
         config = dict(CONFIG, JIRA_PROJECT="PROJ")
         args = SimpleNamespace(
-            project=None, type="Story", summary="A summary", description_file=None
+            project=None, type="Story", summary="A summary",
+            description_file=None, parent=None,
         )
         with mock.patch.object(jira, "request", side_effect=fake), captured():
             jira.cmd_create(config, args)
@@ -275,7 +277,8 @@ class TestCommands(unittest.TestCase):
 
         config = dict(CONFIG, JIRA_PROJECT="PROJ")
         args = SimpleNamespace(
-            project="OTHER", type="Story", summary="s", description_file=None
+            project="OTHER", type="Story", summary="s",
+            description_file=None, parent=None,
         )
         with mock.patch.object(jira, "request", side_effect=fake), captured():
             jira.cmd_create(config, args)
@@ -292,7 +295,8 @@ class TestCommands(unittest.TestCase):
             return {}
 
         args = SimpleNamespace(
-            project=None, type="Story", summary="s", description_file=None
+            project=None, type="Story", summary="s",
+            description_file=None, parent=None,
         )
         with mock.patch.object(jira, "request", side_effect=fake):
             with self.assertRaises(SystemExit) as caught:
@@ -300,6 +304,38 @@ class TestCommands(unittest.TestCase):
 
         self.assertIn("JIRA_PROJECT", str(caught.exception))
         self.assertFalse(called)
+
+    def test_create_nests_under_parent_when_passed(self):
+        seen = {}
+
+        def fake(config, method, path, body=None, params=None):
+            seen.update(body or {})
+            return {"key": "PROJ-100"}
+
+        args = SimpleNamespace(
+            project="PROJ", type="Story", summary="Child",
+            description_file=None, parent="PROJ-1",
+        )
+        with mock.patch.object(jira, "request", side_effect=fake), captured():
+            jira.cmd_create(CONFIG, args)
+
+        self.assertEqual(seen["fields"]["parent"], {"key": "PROJ-1"})
+
+    def test_create_omits_parent_when_unset(self):
+        seen = {}
+
+        def fake(config, method, path, body=None, params=None):
+            seen.update(body or {})
+            return {"key": "PROJ-101"}
+
+        args = SimpleNamespace(
+            project="PROJ", type="Story", summary="Orphan",
+            description_file=None, parent=None,
+        )
+        with mock.patch.object(jira, "request", side_effect=fake), captured():
+            jira.cmd_create(CONFIG, args)
+
+        self.assertNotIn("parent", seen["fields"])
 
     def test_edit_with_nothing_to_change_refuses_rather_than_calling(self):
         # A PUT with an empty fields object is accepted by Jira and does

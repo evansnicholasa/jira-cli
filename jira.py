@@ -45,6 +45,7 @@ Unix side.
     python jira.py get PROJ-42
     python jira.py search "project = PROJ AND statusCategory != Done"
     python jira.py create --type Story --summary "..." --description-file body.md
+    python jira.py create --type Story --parent PROJ-1 --summary "..."
     python jira.py edit PROJ-42 --summary "..." --description-file body.md
     python jira.py transition PROJ-42 Done
     python jira.py comment PROJ-42 --body-file note.md
@@ -248,6 +249,10 @@ def cmd_create(config, args):
     }
     if args.description_file:
         fields["description"] = read_text(args.description_file)
+    if args.parent:
+        # Team-managed (and next-gen) boards nest Stories under Epics with
+        # `parent`, not the classic Epic Link custom field.
+        fields["parent"] = {"key": args.parent}
 
     created = request(config, "POST", f"{API}/issue", body={"fields": fields})
     print(f"{created['key']} created  {issue_url(config, created['key'])}")
@@ -315,6 +320,7 @@ def build_parser() -> argparse.ArgumentParser:
     create.add_argument("--type", default="Story")
     create.add_argument("--summary", required=True)
     create.add_argument("--description-file", help="path, or - for stdin")
+    create.add_argument("--parent", help="parent issue key, e.g. an Epic to nest this under")
     create.set_defaults(func=cmd_create)
 
     edit = sub.add_parser("edit", help="change an issue's summary or description")
